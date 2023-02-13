@@ -1,0 +1,977 @@
+<form>
+  <init>
+    <set token="hour_token">*</set>
+    <set token="hour2_token">*</set>
+  </init>
+  <label>Loan Number Creation Roundtime - ***TEST DASHBOARD***</label>
+  <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <title>Data Summary</title>
+      <input type="time" token="time_tkn">
+        <label>Timerange Filter</label>
+        <default>
+          <earliest>-1d@d</earliest>
+          <latest>@d</latest>
+        </default>
+      </input>
+      <input type="text" token="min1_tkn" searchWhenChanged="true">
+        <label>Minimum Attempt</label>
+        <default>0</default>
+        <initialValue>0</initialValue>
+      </input>
+      <input type="text" token="max1_tkn">
+        <label>Maximum Attempt</label>
+        <default>1000</default>
+        <initialValue>1000</initialValue>
+      </input>
+      <table>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Duration&gt;=0 Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min1_tkn$ AND AttemptCount&lt;=$max1_tkn$ |dedup LoanID 
+|eval DurationSec=round((Duration*60),1) |table _time LoanID DurationSec AttemptCount
+|rangemap field=DurationSec 
+"&lt; 60 seconds"=1-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+default="&gt; 1hr"
+
+
+|stats count as "Number of Loans" avg(DurationSec) as Average avg(AttemptCount) as "Average Attempt Count" by range
+|eval sort_order= case(range="&lt; 60 seconds",1, range="1min  -  2.5min",2, range="2.5min  -  5min",3,range="5min  -  10min",4, range="10min  -  30min",5, range="30min  -  60min",6, range="&gt; 1hr",7)
+|sort sort_order
+|eventstats sum(Number of Loans) as Total
+|eval "Average Duration (Seconds)"=round(Average,2)
+|eval "Average Attempt Count"=round('Average Attempt Count',2)
+|eval "Percentage of Data"=round('Number of Loans' / Total*100,2)."%"
+|fields range "Number of Loans" "Average Duration (Seconds)" "Average Attempt Count" "Percentage of Data"
+|rename range as Range
+
+
+|append
+[search index="main" sourcetype="cv_attempt_count" Duration&gt;=0 Environment=PROD AttemptCount&gt;=$min1_tkn$ AND AttemptCount&lt;=$max1_tkn$ |dedup LoanID 
+|eval DurationSec=round((Duration*60),1) |table _time LoanID DurationSec AttemptCount
+|rangemap field=DurationSec 
+"Total"=0-99999999
+
+
+|stats count as "Number of Loans" avg(DurationSec) as Average avg(AttemptCount) as "Average Attempt Count" by range
+|eval sort_order= case(range="&lt; 60 seconds",1, range="1min  -  2.5min",2, range="2.5min  -  5min",3,range="5min  -  10min",4, range="10min  -  30min",5, range="30min  -  60min",6, range="&gt; 1hr",7)
+|sort sort_order
+|eventstats sum(Number of Loans) as Total
+|eval "Average Duration (Seconds)"=round(Average,2)
+|eval "Average Attempt Count"=round('Average Attempt Count',2)
+|eval "Percentage of Data"=round('Number of Loans' / Total*100,2)."%"
+|fields range "Number of Loans" "Average Duration (Seconds)" "Average Attempt Count" "Percentage of Data"
+|rename range as Range]</query>
+          <earliest>$time_tkn.earliest$</earliest>
+          <latest>$time_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Data Summary</title>
+      <input type="time" token="time2_tkn">
+        <label>Timerange Filter</label>
+        <default>
+          <earliest>-2d@d</earliest>
+          <latest>@d</latest>
+        </default>
+      </input>
+      <input type="text" token="min2_tkn">
+        <label>Minimum Attempt</label>
+        <default>0</default>
+        <initialValue>0</initialValue>
+      </input>
+      <input type="text" token="max2_tkn">
+        <label>Maximum Attempt</label>
+        <default>1000</default>
+        <initialValue>1000</initialValue>
+      </input>
+      <table>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Duration&gt;=0 Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min2_tkn$ AND AttemptCount&lt;=$max2_tkn$ |dedup LoanID 
+|eval DurationSec=round((Duration*60),1) |table _time LoanID DurationSec AttemptCount
+|rangemap field=DurationSec 
+"&lt; 60 seconds"=1-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+default="&gt; 1hr"
+
+
+|stats count as "Number of Loans" avg(DurationSec) as Average avg(AttemptCount) as "Average Attempt Count" by range
+|eval sort_order= case(range="&lt; 60 seconds",1, range="1min  -  2.5min",2, range="2.5min  -  5min",3,range="5min  -  10min",4, range="10min  -  30min",5, range="30min  -  60min",6, range="&gt; 1hr",7)
+|sort sort_order
+|eventstats sum(Number of Loans) as Total
+|eval "Average Duration (Seconds)"=round(Average,2)
+|eval "Average Attempt Count"=round('Average Attempt Count',2)
+|eval "Percentage of Data"=round('Number of Loans' / Total*100,2)."%"
+|fields range "Number of Loans" "Average Duration (Seconds)" "Average Attempt Count" "Percentage of Data"
+|rename range as Range
+
+
+|append
+[search index="main" sourcetype="cv_attempt_count" Duration&gt;=0 Environment=PROD AttemptCount&gt;=$min2_tkn$ AND AttemptCount&lt;=$max2_tkn$ |dedup LoanID 
+|eval DurationSec=round((Duration*60),1) |table _time LoanID DurationSec AttemptCount
+|rangemap field=DurationSec 
+"Total"=0-99999999
+
+
+|stats count as "Number of Loans" avg(DurationSec) as Average avg(AttemptCount) as "Average Attempt Count" by range
+|eval sort_order= case(range="&lt; 60 seconds",1, range="1min  -  2.5min",2, range="2.5min  -  5min",3,range="5min  -  10min",4, range="10min  -  30min",5, range="30min  -  60min",6, range="&gt; 1hr",7)
+|sort sort_order
+|eventstats sum(Number of Loans) as Total
+|eval "Average Duration (Seconds)"=round(Average,2)
+|eval "Average Attempt Count"=round('Average Attempt Count',2)
+|eval "Percentage of Data"=round('Number of Loans' / Total*100,2)."%"
+|fields range "Number of Loans" "Average Duration (Seconds)" "Average Attempt Count" "Percentage of Data"
+|rename range as Range]</query>
+          <earliest>$time2_tkn.earliest$</earliest>
+          <latest>$time2_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Duration Classification || Hour of the Day = $hour_token$</title>
+      <chart>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min1_tkn$ AND AttemptCount&lt;=$max1_tkn$ |dedup LoanID |eval DurationSec=round((Duration*60),1) 
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+
+|table _time LoanID DurationSec HourOfTheDay
+|search HourOfTheDay=$hour_token$
+|rangemap field=DurationSec 
+"&lt; 20 seconds"=1-20 
+"21sec  -  30sec"=21-30 
+"31sec  -  45sec"=31-45 
+"46sec  -  60sec"=46-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+"1hr  -  8hrs"=3601-28800 
+"&gt; 8hrs"=28801-99999999
+
+|chart count over LoanID by range limit=15
+|addcoltotals labelfield=TotalCount label=Range
+|search TotalCount=Range
+|fields TotalCount "&lt; 20 seconds" "21sec  -  30sec" "31sec  -  45sec" "46sec  -  60sec" "1min  -  2.5min" "2.5min  -  5min" "5min  -  10min" "10min  -  30min" "30min  -  60min" "1hr  -  8hrs" "&gt; 8hrs"</query>
+          <earliest>$time_tkn.earliest$</earliest>
+          <latest>$time_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisLabelsY.majorUnit">1</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.labels">["&lt; 20 seconds" "21sec  -  30sec" "31sec  -  45sec" "46sec  -  60sec" "1min  -  2.5min" "2.5min  -  5min" "5min  -  10min" "10min  -  30min" "30min  -  60min" "1hr  -  8hrs" "&gt; 8hrs"]</option>
+        <option name="charting.legend.masterLegend"></option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="charting.seriesColors">[0x008000,0x00CD00,0x66FF66,0xCCFFCC,0xFFEAEA,0xFFC1C1,0xFF6A6A,0xFF3232,0xB20000,0x7F0000,0x330000]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <drilldown>
+          <set token="range1_token">$click.name2$</set>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <title>Duration Classification || Hour of the Day = $hour2_token$</title>
+      <chart>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min2_tkn$ AND AttemptCount&lt;=$max2_tkn$ |dedup LoanID |eval DurationSec=round((Duration*60),1) 
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+
+|table _time LoanID DurationSec HourOfTheDay
+|search HourOfTheDay=$hour2_token$
+|rangemap field=DurationSec 
+"&lt; 20 seconds"=1-20 
+"21sec  -  30sec"=21-30 
+"31sec  -  45sec"=31-45 
+"46sec  -  60sec"=46-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+"1hr  -  8hrs"=3601-28800 
+"&gt; 8hrs"=28801-99999999
+
+|chart count over LoanID by range limit=15
+|addcoltotals labelfield=TotalCount label=Range
+|search TotalCount=Range
+|fields TotalCount "&lt; 20 seconds" "21sec  -  30sec" "31sec  -  45sec" "46sec  -  60sec" "1min  -  2.5min" "2.5min  -  5min" "5min  -  10min" "10min  -  30min" "30min  -  60min" "1hr  -  8hrs" "&gt; 8hrs"</query>
+          <earliest>$time2_tkn.earliest$</earliest>
+          <latest>$time2_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.labels">["&lt; 20 seconds" "21sec  -  30sec" "31sec  -  45sec" "46sec  -  60sec" "1min  -  2.5min" "2.5min  -  5min" "5min  -  10min" "10min  -  30min" "30min  -  60min" "1hr  -  8hrs" "&gt; 8hrs"]</option>
+        <option name="charting.legend.masterLegend"></option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="charting.seriesColors">[0x008000,0x00CD00,0x66FF66,0xCCFFCC,0xFFEAEA,0xFFC1C1,0xFF6A6A,0xFF3232,0xB20000,0x7F0000,0x330000]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <drilldown>
+          <set token="range2_token">$click.name2$</set>
+        </drilldown>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel depends="$range1_token$">
+      <title>($range1_token$) || Hour of the Day = $hour_token$</title>
+      <input type="checkbox" token="duration_tkn" searchWhenChanged="true">
+        <label>Select Duration Unit</label>
+        <choice value="DurationSec">Seconds</choice>
+        <choice value="DurationMin">Minutes</choice>
+        <choice value="DurationHr">Hours</choice>
+        <delimiter> </delimiter>
+        <initialValue>DurationSec</initialValue>
+      </input>
+      <table>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min1_tkn$ AND AttemptCount&lt;=$max1_tkn$
+|dedup LoanID 
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+|eval "Eastern Time"=strftime(mytime,"%m/%d/%Y %H:%M:%S")
+|eval DurationSec=round((Duration*60),1) 
+|eval TotalDuration=round(TotalDuration,2)
+| table TimeStamp LoanID LoanNumber DurationSec HourOfTheDay "Eastern Time" AttemptCount TotalDuration
+| rangemap field=DurationSec  
+"&lt; 20 seconds"=1-20 
+"21sec  -  30sec"=21-30 
+"31sec  -  45sec"=31-45 
+"46sec  -  60sec"=46-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+"1hr  -  8hrs"=3601-28800 
+"&gt; 8hrs"=28801-99999999
+| search range="$range1_token$" AND HourOfTheDay=$hour_token$
+|eval "DurationMin"=DurationSec/60  
+|eval "DurationHr"=DurationSec/3600
+|table "Eastern Time"  LoanID LoanNumber $duration_tkn$ AttemptCount TotalDuration
+|sort -AttemptCount</query>
+          <earliest>$time_tkn.earliest$</earliest>
+          <latest>$time_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel depends="$range2_token$">
+      <title>($range2_token$) || Hour of the Day = $hour2_token$</title>
+      <input type="checkbox" token="duration2_tkn" searchWhenChanged="true">
+        <label>Select Duration Unit</label>
+        <choice value="DurationSec">Seconds</choice>
+        <choice value="DurationMin">Minutes</choice>
+        <choice value="DurationHr">Hours</choice>
+        <delimiter> </delimiter>
+        <initialValue>DurationSec</initialValue>
+      </input>
+      <table>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min2_tkn$ AND AttemptCount&lt;=$max2_tkn$
+|dedup LoanID 
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+|eval "Eastern Time"=strftime(mytime,"%m/%d/%Y %H:%M:%S")
+|eval DurationSec=round((Duration*60),1) 
+|eval TotalDuration=round(TotalDuration,2)
+| table TimeStamp LoanID LoanNumber DurationSec HourOfTheDay "Eastern Time" AttemptCount TotalDuration
+| rangemap field=DurationSec  
+"&lt; 20 seconds"=1-20 
+"21sec  -  30sec"=21-30 
+"31sec  -  45sec"=31-45 
+"46sec  -  60sec"=46-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+"1hr  -  8hrs"=3601-28800 
+"&gt; 8hrs"=28801-99999999
+| search range="$range2_token$" AND HourOfTheDay=$hour2_token$
+|eval "DurationMin"=DurationSec/60  
+|eval "DurationHr"=DurationSec/3600
+|table "Eastern Time"  LoanID LoanNumber $duration2_tkn$ AttemptCount TotalDuration
+|sort -AttemptCount</query>
+          <earliest>$time2_tkn.earliest$</earliest>
+          <latest>$time2_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Data Summary (Total Duration)</title>
+      <table>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" TotalDuration&gt;=0 Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min1_tkn$ AND AttemptCount&lt;=$max1_tkn$ |dedup LoanID 
+|eval DurationSec=round((TotalDuration*60),1) |table _time LoanID DurationSec AttemptCount
+|rangemap field=DurationSec 
+"&lt; 60 seconds"=1-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+default="&gt; 1hr"
+
+
+|stats count as "Number of Loans" avg(DurationSec) as Average avg(AttemptCount) as "Average Attempt Count" by range
+|eval sort_order= case(range="&lt; 60 seconds",1, range="1min  -  2.5min",2, range="2.5min  -  5min",3,range="5min  -  10min",4, range="10min  -  30min",5, range="30min  -  60min",6, range="&gt; 1hr",7)
+|sort sort_order
+|eventstats sum(Number of Loans) as Total
+|eval "Average Total Duration (Seconds)"=round(Average,2)
+|eval "Average Attempt Count"=round('Average Attempt Count',2)
+|eval "Percentage of Data"=round('Number of Loans' / Total*100,2)."%"
+|fields range "Number of Loans" "Average Total Duration (Seconds)" "Average Attempt Count" "Percentage of Data"
+|rename range as Range
+
+
+|append
+[search index="main" sourcetype="cv_attempt_count" TotalDuration&gt;=0 Environment=PROD AttemptCount&gt;=$min1_tkn$ AND AttemptCount&lt;=$max1_tkn$ |dedup LoanID 
+|eval DurationSec=round((TotalDuration*60),1) |table _time LoanID DurationSec AttemptCount
+|rangemap field=DurationSec 
+"Total"=0-99999999
+
+
+|stats count as "Number of Loans" avg(DurationSec) as Average avg(AttemptCount) as "Average Attempt Count" by range
+|eval sort_order= case(range="&lt; 60 seconds",1, range="1min  -  2.5min",2, range="2.5min  -  5min",3,range="5min  -  10min",4, range="10min  -  30min",5, range="30min  -  60min",6, range="&gt; 1hr",7)
+|sort sort_order
+|eventstats sum(Number of Loans) as Total
+|eval "Average Total Duration (Seconds)"=round(Average,2)
+|eval "Average Attempt Count"=round('Average Attempt Count',2)
+|eval "Percentage of Data"=round('Number of Loans' / Total*100,2)."%"
+|fields range "Number of Loans" "Average Total Duration (Seconds)" "Average Attempt Count" "Percentage of Data"
+|rename range as Range]</query>
+          <earliest>$time_tkn.earliest$</earliest>
+          <latest>$time_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Data Summary (Total Duration)</title>
+      <table>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" TotalDuration&gt;=0 Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min2_tkn$ AND AttemptCount&lt;=$max2_tkn$ |dedup LoanID 
+|eval DurationSec=round((TotalDuration*60),1) |table _time LoanID DurationSec AttemptCount
+|rangemap field=DurationSec 
+"&lt; 60 seconds"=1-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+default="&gt; 1hr"
+
+
+|stats count as "Number of Loans" avg(DurationSec) as Average avg(AttemptCount) as "Average Attempt Count" by range
+|eval sort_order= case(range="&lt; 60 seconds",1, range="1min  -  2.5min",2, range="2.5min  -  5min",3,range="5min  -  10min",4, range="10min  -  30min",5, range="30min  -  60min",6, range="&gt; 1hr",7)
+|sort sort_order
+|eventstats sum(Number of Loans) as Total
+|eval "Average Total Duration (Seconds)"=round(Average,2)
+|eval "Average Attempt Count"=round('Average Attempt Count',2)
+|eval "Percentage of Data"=round('Number of Loans' / Total*100,2)."%"
+|fields range "Number of Loans" "Average Total Duration (Seconds)" "Average Attempt Count" "Percentage of Data"
+|rename range as Range
+
+
+|append
+[search index="main" sourcetype="cv_attempt_count" TotalDuration&gt;=0 Environment=PROD AttemptCount&gt;=$min2_tkn$ AND AttemptCount&lt;=$max2_tkn$ |dedup LoanID 
+|eval DurationSec=round((TotalDuration*60),1) |table _time LoanID DurationSec AttemptCount
+|rangemap field=DurationSec 
+"Total"=0-99999999
+
+
+|stats count as "Number of Loans" avg(DurationSec) as Average avg(AttemptCount) as "Average Attempt Count" by range
+|eval sort_order= case(range="&lt; 60 seconds",1, range="1min  -  2.5min",2, range="2.5min  -  5min",3,range="5min  -  10min",4, range="10min  -  30min",5, range="30min  -  60min",6, range="&gt; 1hr",7)
+|sort sort_order
+|eventstats sum(Number of Loans) as Total
+|eval "Average Total Duration (Seconds)"=round(Average,2)
+|eval "Average Attempt Count"=round('Average Attempt Count',2)
+|eval "Percentage of Data"=round('Number of Loans' / Total*100,2)."%"
+|fields range "Number of Loans" "Average Total Duration (Seconds)" "Average Attempt Count" "Percentage of Data"
+|rename range as Range]</query>
+          <earliest>$time2_tkn.earliest$</earliest>
+          <latest>$time2_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Total Duration</title>
+      <chart>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min1_tkn$ AND AttemptCount&lt;=$max1_tkn$ |dedup LoanID |eval DurationSec=round((TotalDuration*60),1) 
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+
+|table _time LoanID DurationSec HourOfTheDay
+|search HourOfTheDay=*
+|rangemap field=DurationSec 
+"&lt; 20 seconds"=1-20 
+"21sec  -  30sec"=21-30 
+"31sec  -  45sec"=31-45 
+"46sec  -  60sec"=46-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+"1hr  -  8hrs"=3601-28800 
+"&gt; 8hrs"=28801-99999999
+
+|chart count over LoanID by range limit=15
+|addcoltotals labelfield=TotalCount label=Range
+|search TotalCount=Range
+|fields TotalCount "&lt; 20 seconds" "21sec  -  30sec" "31sec  -  45sec" "46sec  -  60sec" "1min  -  2.5min" "2.5min  -  5min" "5min  -  10min" "10min  -  30min" "30min  -  60min" "1hr  -  8hrs" "&gt; 8hrs"</query>
+          <earliest>$time_tkn.earliest$</earliest>
+          <latest>$time_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="charting.legend.labels">["&lt; 20 seconds" "21sec  -  30sec" "31sec  -  45sec" "46sec  -  60sec" "1min  -  2.5min" "2.5min  -  5min" "5min  -  10min" "10min  -  30min" "30min  -  60min" "1hr  -  8hrs" "&gt; 8hrs"]</option>
+        <option name="charting.legend.masterLegend"></option>
+        <option name="charting.seriesColors">[0x008000,0x00CD00,0x66FF66,0xCCFFCC,0xFFEAEA,0xFFC1C1,0xFF6A6A,0xFF3232,0xB20000,0x7F0000,0x330000]</option>
+        <drilldown>
+          <set token="range3_token">$click.name2$</set>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <title>Total Duration</title>
+      <chart>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min2_tkn$ AND AttemptCount&lt;=$max2_tkn$ |dedup LoanID |eval DurationSec=round((TotalDuration*60),1) 
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+
+|table _time LoanID DurationSec HourOfTheDay
+|search HourOfTheDay=*
+|rangemap field=DurationSec 
+"&lt; 20 seconds"=1-20 
+"21sec  -  30sec"=21-30 
+"31sec  -  45sec"=31-45 
+"46sec  -  60sec"=46-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+"1hr  -  8hrs"=3601-28800 
+"&gt; 8hrs"=28801-99999999
+
+|chart count over LoanID by range limit=15
+|addcoltotals labelfield=TotalCount label=Range
+|search TotalCount=Range
+|fields TotalCount "&lt; 20 seconds" "21sec  -  30sec" "31sec  -  45sec" "46sec  -  60sec" "1min  -  2.5min" "2.5min  -  5min" "5min  -  10min" "10min  -  30min" "30min  -  60min" "1hr  -  8hrs" "&gt; 8hrs"</query>
+          <earliest>$time2_tkn.earliest$</earliest>
+          <latest>$time2_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="charting.legend.labels">["&lt; 20 seconds" "21sec  -  30sec" "31sec  -  45sec" "46sec  -  60sec" "1min  -  2.5min" "2.5min  -  5min" "5min  -  10min" "10min  -  30min" "30min  -  60min" "1hr  -  8hrs" "&gt; 8hrs"]</option>
+        <option name="charting.legend.masterLegend"></option>
+        <option name="charting.seriesColors">[0x008000,0x00CD00,0x66FF66,0xCCFFCC,0xFFEAEA,0xFFC1C1,0xFF6A6A,0xFF3232,0xB20000,0x7F0000,0x330000]</option>
+        <drilldown>
+          <set token="range4_token">$click.name2$</set>
+        </drilldown>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel depends="$range3_token$">
+      <title>($range3_token$)</title>
+      <input type="checkbox" token="duration3_tkn" searchWhenChanged="true">
+        <label>Select Duration Unit</label>
+        <choice value="DurationSec">Seconds</choice>
+        <choice value="DurationMin">Minutes</choice>
+        <choice value="DurationHr">Hours</choice>
+        <delimiter> </delimiter>
+        <initialValue>DurationSec</initialValue>
+      </input>
+      <table>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min1_tkn$ AND AttemptCount&lt;=$max1_tkn$
+|dedup LoanID 
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+|eval "Eastern Time"=strftime(mytime,"%m/%d/%Y %H:%M:%S")
+|eval DurationSec=round((TotalDuration*60),1) 
+|eval TotalDuration=round(TotalDuration,2)
+| table TimeStamp LoanID LoanNumber DurationSec HourOfTheDay "Eastern Time" AttemptCount TotalDuration
+| rangemap field=DurationSec  
+"&lt; 20 seconds"=1-20 
+"21sec  -  30sec"=21-30 
+"31sec  -  45sec"=31-45 
+"46sec  -  60sec"=46-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+"1hr  -  8hrs"=3601-28800 
+"&gt; 8hrs"=28801-99999999
+| search range="$range3_token$"
+|eval "DurationMin"=DurationSec/60  
+|eval "DurationHr"=DurationSec/3600
+|table "Eastern Time"  LoanID LoanNumber $duration3_tkn$ AttemptCount TotalDuration
+|sort -AttemptCount</query>
+          <earliest>$time_tkn.earliest$</earliest>
+          <latest>$time_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel depends="$range4_token$">
+      <title>($range4_token$)</title>
+      <input type="checkbox" token="duration4_tkn" searchWhenChanged="true">
+        <label>Select Duration Unit</label>
+        <choice value="DurationSec">Seconds</choice>
+        <choice value="DurationMin">Minutes</choice>
+        <choice value="DurationHr">Hours</choice>
+        <delimiter> </delimiter>
+        <initialValue>DurationSec</initialValue>
+      </input>
+      <table>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Environment=PROD LoanNumber!=Pending AttemptCount&gt;=$min2_tkn$ AND AttemptCount&lt;=$max2_tkn$
+|dedup LoanID 
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+|eval "Eastern Time"=strftime(mytime,"%m/%d/%Y %H:%M:%S")
+|eval DurationSec=round((TotalDuration*60),1) 
+|eval TotalDuration=round(TotalDuration,2)
+| table TimeStamp LoanID LoanNumber DurationSec HourOfTheDay "Eastern Time" AttemptCount TotalDuration
+| rangemap field=DurationSec  
+"&lt; 20 seconds"=1-20 
+"21sec  -  30sec"=21-30 
+"31sec  -  45sec"=31-45 
+"46sec  -  60sec"=46-60 
+"1min  -  2.5min"=61-150  
+"2.5min  -  5min"=151-300
+"5min  -  10min"=301-600 
+"10min  -  30min"=601-1800 
+"30min  -  60min"=1801-3600 
+"1hr  -  8hrs"=3601-28800 
+"&gt; 8hrs"=28801-99999999
+| search range="$range4_token$"
+|eval "DurationMin"=DurationSec/60  
+|eval "DurationHr"=DurationSec/3600
+|table "Eastern Time"  LoanID LoanNumber $duration4_tkn$ AttemptCount TotalDuration
+|sort -AttemptCount</query>
+          <earliest>$time2_tkn.earliest$</earliest>
+          <latest>$time2_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Peak Hours</title>
+      <chart>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Duration&gt;=0 Environment=PROD LoanNumber!=Pending |dedup LoanID
+|table _time Duration LoanID
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+|stats count by HourOfTheDay |makecontinuous HourOfTheDay |fillnull count</query>
+          <earliest>$time_tkn.earliest$</earliest>
+          <latest>$time_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <drilldown>
+          <set token="hour_token">$click.value$</set>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <title>Peak Hours</title>
+      <chart>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Duration&gt;=0 Environment=PROD LoanNumber!=Pending |dedup LoanID
+|table _time Duration LoanID
+|eval mytime=relative_time(_time,"-4h")
+|eval HourOfTheDay=strftime(mytime,"%H")
+|stats count by HourOfTheDay |makecontinuous HourOfTheDay |fillnull count</query>
+          <earliest>$time2_tkn.earliest$</earliest>
+          <latest>$time2_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <drilldown>
+          <set token="hour2_token">$click.value$</set>
+        </drilldown>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Duration Monitoring</title>
+      <chart>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Duration&gt;=0 Environment=PROD LoanNumber!=Pending |dedup LoanID
+|eval _time=relative_time(_time,"-4h")
+|eval _time=strftime(_time,"%Y-%m-%d %H:%M:%S")
+|table _time Duration
+|sort _time</query>
+          <earliest>$time_tkn.earliest$</earliest>
+          <latest>$time_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Duration in Minutes</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Duration Monitoring</title>
+      <chart>
+        <search>
+          <query>index="main" sourcetype="cv_attempt_count" Duration&gt;=0 Environment=PROD LoanNumber!=Pending |dedup LoanID
+|eval _time=relative_time(_time,"-4h")
+|eval _time=strftime(_time,"%Y-%m-%d %H:%M:%S")
+|table _time Duration
+|sort _time</query>
+          <earliest>$time2_tkn.earliest$</earliest>
+          <latest>$time2_tkn.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Duration in Minutes</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+</form>
